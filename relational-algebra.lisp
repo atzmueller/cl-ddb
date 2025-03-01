@@ -50,11 +50,6 @@
 ;; necessary operations are:
 ;; select, project, rename, cross-product, union, diff
 
-(defmacro with-safe-relation (relation &body body)
-  `(let* ((relation ,relation))
-     (progn
-       ,@body)))
-
 (defun string-starts-with-p (string prefix)
   (unless (< (length string) (length prefix))
     (equal (subseq string (length prefix)) prefix)))
@@ -73,7 +68,7 @@
 	(error "Attribute ~A not found in schema ~A" attribute (schema relation)))))
 
 
-(defun expand-expression (expression)
+(defun expand-expression (expression safe-relation)
   (cond ((eql expression '=)
 	 'equal)
 	 ((or (member expression '(> < >= <= NOT AND OR))
@@ -83,24 +78,25 @@
 	     (eq expression nil))
 	 expression)
 	((symbolp expression)
-	 `(get-attribute-value relation ',expression row))
+	 `(get-attribute-value ,safe-relation ',expression row))
 	(t
-	 (cons (expand-expression (first expression))
-	       (mapcar #'(lambda (e) (expand-expression e))
+	 (cons (expand-expression (first expression) safe-relation)
+	       (mapcar #'(lambda (e) (expand-expression e safe-relation))
 		       (rest expression))))))
 
 (defmacro select (predicate relation)
-  `(with-safe-relation ,relation
-     (labels ((predicate-lambda (row)
-		,(expand-expression predicate)))
-       (let ((result-rows
-	       (LOOP :FOR row in (rows relation)
-		     :NCONC (let ((result (funcall #'predicate-lambda row)))
-			      (when result
-				(list row))))))
-	 (make-instance 'relation
-			:schema (make-instance 'schema :attributes (attributes (schema relation)))
-			:rows result-rows)))))
+  (let ((safe-relation (gensym)))
+    `(let ((,safe-relation ,relation))
+       (labels ((predicate-lambda (row)
+		  ,(expand-expression predicate safe-relation)))
+	 (let ((result-rows
+		 (LOOP :FOR row in (rows ,safe-relation)
+		       :NCONC (let ((result (funcall #'predicate-lambda row)))
+				(when result
+				  (list row))))))
+	   (make-instance 'relation
+			  :schema (make-instance 'schema :attributes (attributes (schema ,safe-relation)))
+			  :rows result-rows))))))
 
 ;;; (defmacro σ (predicate relation) ;; σ is U+03C3
 ;;;  `(select ,predicate ,relation))
@@ -109,25 +105,26 @@
   `(select ,predicate ,relation))
 
 (defmacro project (attributes relation)
-  `(with-safe-relation ,relation
-     (let* ((attribute-positions
-	      (mapcan #'(lambda (attribute)
-			  (let ((pos (position attribute (attributes (schema relation)))))
-			    (if pos
-				(list pos)
-				(error "Attribute ~A not found in schema ~A" attribute (schema relation)))))
-		      ',attributes))
-	    (existing-attributes (mapcar #'(lambda (index)
-					     (elt (attributes (schema relation)) index))
-					 attribute-positions))
-	    (projected-rows (mapcar #'(lambda (row)
-					(mapcar #'(lambda(index)
-						    (elt row index))
-						attribute-positions))
-				    (rows relation))))
-       (make-instance 'relation
-		      :schema (make-instance 'schema :attributes existing-attributes)
-		      :rows (remove-duplicates projected-rows :test #'equal)))))
+  (let ((safe-relation (gensym)))
+    `(let ((,safe-relation ,relation))
+       (let* ((attribute-positions
+		(mapcan #'(lambda (attribute)
+			    (let ((pos (position attribute (attributes (schema ,safe-relation)))))
+			      (if pos
+				  (list pos)
+				  (error "Attribute ~A not found in schema ~A" attribute (schema ,safe-relation)))))
+			',attributes))
+	      (existing-attributes (mapcar #'(lambda (index)
+					       (elt (attributes (schema ,safe-relation)) index))
+					   attribute-positions))
+	      (projected-rows (mapcar #'(lambda (row)
+					  (mapcar #'(lambda(index)
+						      (elt row index))
+						  attribute-positions))
+				      (rows ,safe-relation))))
+	 (make-instance 'relation
+			:schema (make-instance 'schema :attributes existing-attributes)
+			:rows (remove-duplicates projected-rows :test #'equal))))))
 						     
 ;;; (defmacro π (attributes relation) ;; π is U+03C0
 ;;;   `(project ,attributes ,relation))

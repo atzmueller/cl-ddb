@@ -15,4 +15,5 @@
    #:as
    #:select #:project #:rename #:x #:rel-union #:rel-diff
    #:s #:p #:r #:u #:--
+   #:with-string-from-file #:with-db-connection #:do-sql*
    ))

@@ -23,9 +23,12 @@
   :author "Martin Atzmueller <martin@atzmueller.net>"
   :license  "BSD"
   :serial t
-  :depends-on ("uiop")
+  :depends-on ("uiop" "cl-ddb")
   :components ((:file "tests/package")
 	       (:file "tests/cl-ddb-test-system")
 	       (:file "tests/cl-ddb-ra-tests"))
   :perform (asdf:test-op (o s)
-		    (uiop:symbol-call :fiveam :run! 'cl-ddb-test:cl-ddb-test-system)))
+			 (uiop:symbol-call
+			  :fiveam
+			  :run!
+			  (find-symbol "CL-DDB-TEST-SYSTEM" (find-package '#:cl-ddb-test)))))
