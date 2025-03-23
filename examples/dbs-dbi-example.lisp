@@ -9,26 +9,26 @@
 
 (with-db-connection (connection)
   (setup-uni-db connection)
-  (with-string-from-file (statement "test-sql-dsl.sql")
+  (with-string-from-file (statement "sql-dsl-select-example.sql")
     (let* ((dbi-query (dbi:prepare connection statement))
 	   (result (dbi:execute dbi-query)))
       (dbi:fetch-all result))))
 
 (with-db-connection (connection)
   (setup-uni-db connection)
-  (with-string-from-file (statement "test-sql-dsl.sql")
+  (with-string-from-file (statement "sql-dsl-select-example.sql")
     (let* ((dbi-query (dbi:prepare connection statement))
 	   (result (dbi:execute dbi-query)))
       (dbi:fetch-all result))))
 
 (with-db-connection (connection)
   (setup-uni-db connection)
-  (with-string-from-file (statement "test-sql-dsl.sql")
+  (with-string-from-file (statement "sql-dsl-select-example.sql")
     (dbi:do-sql connection statement)))
 
 (with-db-connection (connection)
   (setup-uni-db connection)
-  (with-string-from-file (statement "test-sql-dsl.sql")
+  (with-string-from-file (statement "sql-dsl-select-example.sql")
     (do-sql* connection statement)))
 
 
