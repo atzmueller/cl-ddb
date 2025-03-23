@@ -17,6 +17,7 @@
                (:file "cl-ddb"))
   :in-order-to ((test-op (test-op "cl-ddb/tests"))))
 
+;;; test system with: (asdf:test-system :cl-ddb)
 
 (asdf:defsystem #:cl-ddb/tests
   :description "cl-ddb-test-system"
