@@ -37,3 +37,11 @@
     (LOOP :FOR statement :IN split-statements
 	  :DO (dbi:do-sql connection statement))))
 
+
+(defun do-query (query &key (db ":memory:") user password)
+  (with-db-connection (connection :db db)
+    (let* ((query (dbi:prepare connection query))
+           (query (dbi:execute query)))
+      (loop for row = (dbi:fetch query)
+            while row
+            do (format t "~A~%" row)))))

@@ -1,12 +1,25 @@
 (in-package :cl-user)
 
+;; might need to do something like this in .sbclrc
+;; (setf (uiop:getenv "DYLD_LIBRARY_PATH")
+;;      (uiop:strcat "/opt/homebrew/Caskroom/miniconda/base/lib/"))
+
+;; or hotfix, or put libsqlite3 into the same directory as our file ...
+(defun cffi::load-foreign-library-path (name path &optional search-path)
+  "Tries to load PATH using %LOAD-FOREIGN-LIBRARY which should try and
+find it using the OS's usual methods. If that fails we try to find it
+ourselves."
+  (let ((dirs (cffi::parse-directories cffi:*foreign-library-directories*)))
+    (cffi::if-let (cffi::file (cffi::find-file path (append search-path dirs)))
+      (handler-case
+          (values (cffi::%load-foreign-library name (native-namestring cffi::file))
+                  cffi::file)
+        (simple-error (error)
+          (cffi::report-simple-error name error)))
+      (cffi::report-simple-error name error))))
+
 (ql:quickload :cl-dbi)
-
-
-(cffi:defcfun sqlite3-enable-load-extension :int
-  (db sqlite-ffi:p-sqlite3)
-  (onoff :int))
-
+(ql:quickload :sqlite)
 
 ;; int sqlite3_db_config(sqlite3*, int op, ...);
 
@@ -47,8 +60,23 @@
 
 (dbi:with-connection (conn :sqlite3 :database-name ":memory:")
   (sqlite3-db-config (sqlite::handle (dbi.driver:connection-handle conn)) 1005)
-  (sqlite3-enable-load-extension (sqlite::handle (dbi.driver:connection-handle conn)) 1)
+  ;;(sqlite3-enable-load-extension (sqlite::handle (dbi.driver:connection-handle conn)) 1)
   (let* ((query (dbi:prepare conn "SELECT load_extension('mod_spatialite');"))
+         (query (dbi:execute query)))
+    (loop for row = (dbi:fetch query)
+          while row
+          do (format t "~A~%" row))))
+
+
+(dbi:with-connection (conn :sqlite3 :database-name ":memory:")
+  (let* ((query (dbi:prepare conn "select * from pragma_compile_options();"))
+         (query (dbi:execute query)))
+    (loop for row = (dbi:fetch query)
+          while row
+          do (format t "~A~%" row))))
+
+(dbi:with-connection (conn :sqlite3 :database-name ":memory:")
+  (let* ((query (dbi:prepare conn "select sqlite_version();"))
          (query (dbi:execute query)))
     (loop for row = (dbi:fetch query)
           while row
@@ -115,20 +143,3 @@
     (loop for row = (dbi:fetch query)
           while row
           do (format t "~A~%" row))))
-
-
-db = sqlite3.connect(":memory:")
-db.enable_load_extension(True)
-db.execute("SELECT load_extension(?)", [SPATIALITE])
-db.execute("SELECT InitSpatialMetadata(1)")
-db.execute("CREATE TABLE places_spatialite (id integer primary key, name text)")
-db.execute(
-    "SELECT AddGeometryColumn('places_spatialite', 'geometry', 4326, 'POINT', 'XY');"
-)
-# Then to add a spatial index:
-db.execute(
-    "SELECT CreateSpatialIndex('places_spatialite', 'geometry');"
-)
-
-
-;;; SELECT load_extension('mod_spatialite');
