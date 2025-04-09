@@ -38,10 +38,11 @@
 	  :DO (dbi:do-sql connection statement))))
 
 
-(defun do-query (query &key (db ":memory:") user password)
-  (with-db-connection (connection :db db)
-    (let* ((query (dbi:prepare connection query))
-           (query (dbi:execute query)))
-      (loop for row = (dbi:fetch query)
-            while row
-            do (format t "~A~%" row)))))
+(defmacro with-sql-query ((query-variable sql-statement
+			   &key (driver :sqlite3) (db ":memory:") user password)
+			  &body body)
+  `(with-db-connection (connection :driver ,driver :db ,db :user ,user :password ,password)
+     (let* ((,query-variable (dbi:prepare connection ,sql-statement))
+            (,query-variable (dbi:execute ,query-variable)))
+       ,@body)))
+

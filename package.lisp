@@ -3,17 +3,25 @@
 
 ;;;; package.lisp
 
-(defpackage #:cl-ddb
-  (:use #:cl #:dbi)
-  (:nicknames #:ddb)
-  (:export
-   #:query
-   #:<-
-   #:def-schema
-   #:def-relation
-   #:attributes #:types #:name #:schema #:rows
-   #:as
-   #:select #:project #:rename #:x #:rel-union #:rel-diff
-   #:s #:p #:r #:u #:--
-   #:with-string-from-file #:with-db-connection #:do-sql*
-   ))
+(unless (find-package "CL-DDB")
+  (defpackage #:cl-ddb
+    (:use #:cl #:dbi)
+    (:nicknames #:ddb)
+    (:export
+     #:query
+     #:<-
+     #:def-schema
+     #:def-relation
+     #:do-sql*
+     #:attributes #:types #:name #:schema #:rows
+     #:as
+     #:select #:project #:rename #:x #:rel-union #:rel-diff
+     #:s #:p #:r #:u #:--
+     #:with-string-from-file #:with-db-connection #:with-sql-query
+     )))
+  
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (when (find-package "CL-DDB")
+    (do-external-symbols (sym (find-package "CL-DBI"))
+      (export sym (find-package "CL-DDB")))))
+			      

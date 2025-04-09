@@ -27,7 +27,8 @@
   :depends-on ("uiop" "cl-ddb")
   :components ((:file "tests/package")
 	       (:file "tests/cl-ddb-test-system")
-	       (:file "tests/cl-ddb-ra-tests"))
+	       (:file "tests/cl-ddb-ra-tests")
+	       (:file "tests/cl-ddb-sql-tests"))
   :perform (asdf:test-op (o s)
 			 (uiop:symbol-call
 			  :fiveam
