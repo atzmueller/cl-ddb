@@ -19,9 +19,9 @@ CREATE TABLE Professor
 
 CREATE TABLE Assistant
 (PerNo         INTEGER PRIMARY KEY,
- Name           VARCHAR(30) NOT NULL,
- Topic     VARCHAR(30),
- Boss           INTEGER,
+ Name          VARCHAR(30) NOT NULL,
+ Subject       VARCHAR(30),
+ Boss          INTEGER,
  FOREIGN KEY    (Boss) REFERENCES Professor(PerNo));
 
 CREATE TABLE Course
@@ -98,22 +98,22 @@ VALUES (2137, 'Kant', 'W3', 007);
 
 
 
-INSERT INTO Assistant (PerNo, Name, Topic, Boss)
+INSERT INTO Assistant (PerNo, Name, Subject, Boss)
 VALUES (3002, 'Platon', 'Theory of Ideas', 2125);
 
-INSERT INTO Assistant (PerNo, Name, Topic, Boss)
+INSERT INTO Assistant (PerNo, Name, Subject, Boss)
 VALUES (3003, 'Aristoteles', 'Syllogistics', 2125);
 
-INSERT INTO Assistant (PerNo, Name, Topic, Boss)
+INSERT INTO Assistant (PerNo, Name, Subject, Boss)
 VALUES (3004, 'Wittgenstein', 'Theory of Language', 2126);
 
-INSERT INTO Assistant (PerNo, Name, Topic, Boss)
+INSERT INTO Assistant (PerNo, Name, Subject, Boss)
 VALUES (3005, 'Rhetikus', 'Planetary Motion', 2127);
 
-INSERT INTO Assistant (PerNo, Name, Topic, Boss)
+INSERT INTO Assistant (PerNo, Name, Subject, Boss)
 VALUES (3006, 'Newton', 'Kepler''s Laws', 2127);
 
-INSERT INTO Assistant (PerNo, Name, Topic, Boss)
+INSERT INTO Assistant (PerNo, Name, Subject, Boss)
 VALUES (3007, 'Spinoza', 'God and Nature', 2134);
 
 
