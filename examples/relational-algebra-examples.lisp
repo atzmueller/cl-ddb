@@ -114,7 +114,7 @@
   ((2125 "Sokrates" "W3" 226)
    (2126 "Russel" "W3" 232)
    (2127 "Kopernikus" "W2" 310)
-   (2133 "Poppper" "W2" 52)
+   (2133 "Popper" "W2" 52)
    (2134 "Augustinus" "W2" 309)
    (2147 "Curie" "W3" 36)
    (2137 "Kant" "W3" 7)))
