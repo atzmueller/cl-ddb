@@ -82,7 +82,7 @@
 
 
 
-(def-schema require (Predecessor Successor))
+(def-schema requires (Predecessor Successor))
 
 (print require)
 
@@ -131,9 +131,9 @@
    (5022 "Glaube und Wissen" 2 2134)
    (4630 "Die 3 Kritiken" 4 2137)))
 
-(def-schema schema-attend (stuno couno))
+(def-schema schema-attends (stuno couno))
 
-(def-relation attend schema-attend
+(def-relation attends schema-attend
   ((26120 5001)
    (27550 5001)
    (27550 4052)
@@ -151,7 +151,7 @@
 
 (def-schema require-schema (predecessor successor))
 
-(def-relation require require-schema
+(def-relation requires require-schema
   ((5001 5041)
    (5001 5043)
    (5001 5049)
@@ -194,3 +194,12 @@
 
 (s (or (= name "Curie") (= name "Kant")) name-title)
 (s (or (= name "Sokrates") (= name "Russel")) name-title)
+
+
+;;(def-ra-operator intersect
+;;    (-- rel1 (-- rel1 rel2)))
+
+(def-ra-operator intersect (r1 r2)
+  (-- r1 (-- r1 r2)))
+
+(intersect professor course)
