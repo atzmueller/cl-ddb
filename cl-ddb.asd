@@ -6,7 +6,7 @@
 (asdf:defsystem #:cl-ddb
   :description "Describe cl-ddb here"
   :author "Martin Atzmueller <martin@atzmueller.net>"
-  :license  "BSD"
+  :license  "MIT"
   :version "0.1"
   :depends-on ("cl-dbi" "fiveam")
   :serial t
@@ -22,7 +22,7 @@
 (asdf:defsystem #:cl-ddb/tests
   :description "cl-ddb-test-system"
   :author "Martin Atzmueller <martin@atzmueller.net>"
-  :license  "BSD"
+  :license  "MIT"
   :serial t
   :depends-on ("uiop" "cl-ddb")
   :components ((:file "tests/package")
