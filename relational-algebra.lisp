@@ -220,13 +220,15 @@
 			 (rest list) symbol expression)))))
 ;;; (substitute-var-symbol-by-expression-recursively '(a b c) 'a '("bla"))
 
-(defmacro def-ra-operator (name variables &body body)
-  `(defmacro ,name (,@variables)
-     ,(let ((new-body body))
-	(progn
-	  (LOOP :FOR var :IN variables
-		:DO (setf new-body
-			  (substitute-var-symbol-by-expression-recursively body var `',var)))
-	  `',@new-body))))
-      
-     
+
+(defmacro def-ra-operator (name (rvar1 &optional rvar2) &body body)
+  `(defmacro ,name (rel1 &optional rel2)
+     ,(if rvar2
+	  ``(let ((,',rvar1 ,rel1) (,',rvar2 ,rel2))
+	      ,'(progn
+		 ,@body))
+	  ``(let ((,',rvar1 ,rel1))
+	      ,'(progn
+		 ,@body)))))
+	  
+

@@ -11,6 +11,7 @@
      #:query
      #:<-
      #:def-schema
+     #:def-ra-operator
      #:def-relation
      #:do-sql*
      #:attributes #:types #:name #:schema #:rows
