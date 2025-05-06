@@ -120,16 +120,16 @@
    (2137 "Kant" "W3" 7)))
 
 (def-relation course schema-course
-  ((5001 "Grundzüge" 4 2137)
-   (5041 "Ethik" 4 2125)
-   (5043 "Erkenntnistheorie" 3 2126)
-   (5049 "Mäeutik" 2 2125)
-   (4052 "Logik" 4 2125)
-   (5052 "Wissenschaftstheorie" 3 2126)
-   (5216 "Bioethik" 2 2126)
-   (5259 "Der Wiener Kreis" 2 2133)
-   (5022 "Glaube und Wissen" 2 2134)
-   (4630 "Die 3 Kritiken" 4 2137)))
+  ((5001 "Fundamental Principles" 4 2137)
+   (5041 "Ethics" 4 2125)
+   (5043 "Epistemology" 3 2126)
+   (5049 "Maeeutics" 2 2125)
+   (4052 "Logic" 4 2125)
+   (5052 "Philosophy of Science" 3 2126)
+   (5216 "Bioethics" 2 2126)
+   (5259 "The Vienna Circle" 2 2133)
+   (5022 "Faith and Knowledge" 2 2134)
+   (4630 "The Three Critiques" 4 2137)))
 
 (def-schema schema-attends (stuno couno))
 
@@ -194,12 +194,3 @@
 
 (s (or (= name "Curie") (= name "Kant")) name-title)
 (s (or (= name "Sokrates") (= name "Russel")) name-title)
-
-
-;;(def-ra-operator intersect
-;;    (-- rel1 (-- rel1 rel2)))
-
-(def-ra-operator intersect (r1 r2)
-  (-- r1 (-- r1 r2)))
-
-(intersect professor course)
