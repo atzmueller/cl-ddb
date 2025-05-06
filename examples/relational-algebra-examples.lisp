@@ -84,9 +84,9 @@
 
 (def-schema requires (Predecessor Successor))
 
-(print require)
+(print requires)
 
-(def-relation r6 require
+(def-relation r6 requires
   ((5001 5041)
    (5001 5043)
    (5001 5049)
@@ -97,11 +97,6 @@
 (print r6)
 
 (s (= Predecessor 5001) r6)
-
-(ddb::def-ra-operator select1 (x)
-  (select (= Predecessor x) r6))
-
-(select1 5001)
 
 
 
@@ -194,3 +189,5 @@
 
 (s (or (= name "Curie") (= name "Kant")) name-title)
 (s (or (= name "Sokrates") (= name "Russel")) name-title)
+
+
