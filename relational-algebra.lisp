@@ -76,7 +76,9 @@
              (stringp expression)
              (eq expression t)
              (eq expression nil))
-         expression)
+          expression)
+	 ((and (consp expression) (equalp (symbol-name (first expression)) "VAL"))
+	  (second expression))
         ((symbolp expression)
          `(get-attribute-value ,safe-relation ',expression row))
         (t
@@ -223,6 +225,7 @@
 
 (defmacro def-ra-operator (name (rvar1 &optional rvar2) &body body)
   `(defmacro ,name (rel1 &optional rel2)
+     (declare (ignorable rel2))
      ,(if rvar2
           ``(let ((,',rvar1 ,rel1) (,',rvar2 ,rel2))
               ,'(progn
