@@ -10,6 +10,11 @@
                attributes)
    (types :initform nil :initarg :types :accessor types)))
 
+(defmethod make-load-form ((self schema) &optional environment)
+  (make-load-form-saving-slots self
+			       :slot-names '(attributes types)
+			       :environment environment))
+  
 (defmethod print-object ((schema schema) stream)
   (print-unreadable-object (schema stream :type t)
     (format stream "~a: ~a ; " 'attributes (attributes schema))
@@ -19,6 +24,11 @@
   ((name :initform nil :initarg :name :accessor name)
    (schema :initform nil :initarg :schema :accessor schema)
    (rows :initform nil :initarg :rows :accessor rows)))
+
+(defmethod make-load-form ((self relation) &optional environment)
+  (make-load-form-saving-slots self
+			       :slot-names '(name schema rows)
+			       :environment environment))
 
 (defmethod print-object ((relation relation) stream)
   (print-unreadable-object (relation stream :type t)
