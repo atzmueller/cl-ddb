@@ -20,6 +20,7 @@
     (format stream "~a: ~a ; " 'attributes (attributes schema))
     (format stream "~a: ~a" 'types (types schema))))
 
+
 (defclass relation ()
   ((name :initform nil :initarg :name :accessor name)
    (schema :initform nil :initarg :schema :accessor schema)
@@ -35,7 +36,6 @@
     (format stream "~a: ~a ; " 'name (name relation))
     (format stream "~a: ~a;" 'schema (schema relation))
     (format stream "~%~a: ~a" 'rows (rows relation))))
-
 
 (defmacro as (name expression)
   `(progn
@@ -64,19 +64,11 @@
   (unless (< (length string) (length prefix))
     (equal (subseq string (length prefix)) prefix)))
 
-(defun make-qualified-attribute-symbol (attribute relation)
-  (let* ((attribute-string (symbol-name attribute))
-         (relation-string (symbol-name (name relation))))
-    (if (string-starts-with-p attribute-string (concatenate 'string relation-string "."))
-        attribute-string
-        (concatenate 'string relation-string "." attribute-string))))
-
 (defun get-attribute-value (relation attribute row)
   (let ((position (position attribute (attributes (schema relation)))))
     (if position
         (elt row position)
         (error "Attribute ~A not found in schema ~A" attribute (schema relation)))))
-
 
 (defun expand-expression (expression safe-relation)
   (cond ((eql expression '=)
@@ -110,11 +102,9 @@
                           :schema (make-instance 'schema :attributes (attributes (schema ,safe-relation)))
                           :rows result-rows))))))
 
-;;; (defmacro σ (predicate relation) ;; σ is U+03C3
-;;;  `(select ,predicate ,relation))
-
 (defmacro s (predicate relation)
   `(select ,predicate ,relation))
+
 
 (defmacro project (attributes relation)
   (let ((safe-relation (gensym)))
@@ -138,11 +128,9 @@
                         :schema (make-instance 'schema :attributes existing-attributes)
                         :rows (remove-duplicates projected-rows :test #'equal))))))
                                                      
-;;; (defmacro π (attributes relation) ;; π is U+03C0
-;;;   `(project ,attributes ,relation))
-
 (defmacro p (attributes relation)
   `(project ,attributes ,relation))
+
 
 (defun do-rename (new old relation)
   (let* ((attributes (attributes (schema relation)))
@@ -163,11 +151,9 @@
        `(rename-attribute ,new ,old ,relation)
        `(rename-relation ,new ,old))))
 
-;;; (defmacro ρ (new old &rest relation) ;; ρ is U+03C1
-;;;  `(rename ,new ,old ,@relation))
-
 (defmacro r (new old &rest relation)
   `(rename ,new ,old ,@relation))
+
 
 (defun cartesian-product (l1 l2)
   (LOOP :FOR x :IN l1 :NCONC (LOOP :FOR y :IN l2 :COLLECT (append x y))))
@@ -179,6 +165,7 @@
                                                                     (attributes (schema r2))))
                  :rows (remove-duplicates (cartesian-product (rows r1) (rows r2)) :test #'equal)))
 
+
 (defmethod rel-union ((r1 relation) (r2 relation))
   (assert (equalp (attributes (schema r1)) (attributes (schema r2)))
           nil "Schemas of ~A and ~A do not match" r1 r2)
@@ -189,6 +176,7 @@
 
 (defmethod u ((r1 relation) (r2 relation))
   (rel-union r1 r2))
+
 
 (defun get-seq1-sort-order-for-seq2 (seq1 seq2)
   (LOOP :FOR elt :IN seq1 :COLLECT (position elt seq2)))
@@ -214,23 +202,6 @@
 
 (defmethod -- ((r1 relation) (r2 relation))
   (rel-diff r1 r2))
-
-
-(defun substitute-var-symbol-by-expression-recursively (list symbol expression)
-  (cond
-    ((null list) nil)
-    ((listp (first list))
-     (cons (substitute-var-symbol-by-expression-recursively
-            (first list) symbol expression)
-           (substitute-var-symbol-by-expression-recursively
-            (rest list) symbol expression)))
-    ((equalp (first list) symbol)
-     (cons expression (substitute-var-symbol-by-expression-recursively
-                       (rest list) symbol expression)))
-    (t
-     (cons (first list) (substitute-var-symbol-by-expression-recursively
-                         (rest list) symbol expression)))))
-;;; (substitute-var-symbol-by-expression-recursively '(a b c) 'a '("bla"))
 
 
 (defmacro def-ra-operator (name (rvar1 &optional rvar2) &body body)
