@@ -159,7 +159,7 @@
        (s (= perno taughtby)
 	  (x professor course))))
 
-;;; (3) All requirements (as course numbers) for the course "Wissenschaftstheorie" (CouNo=5052).
+;;; (3) All requirements (as course numbers) for the course "Philosophy of Science" (CouNo=5052).
 (p (predecessor)
    (s (= couno 5052)
       (s (= couno successor)

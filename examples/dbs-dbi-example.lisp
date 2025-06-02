@@ -42,3 +42,15 @@
 		     (getf row :|Name|)
 		     (getf row :|Rank|)
 		     (getf row :|Room|)))))
+
+
+(with-db-connection (connection)
+  (setup-uni-db connection)
+  (let* ((prep-query (dbi:prepare connection "SELECT Professor.name AS PROFNAME, Course.title AS COURSENAME FROM Professor JOIN Course ON Professor.perno = Course.taughtby"))
+         (query (dbi:execute prep-query)))
+    (loop for row = (dbi:fetch query)
+          while row
+          do (format t "~A teaches ~A~%"
+		     (getf row :profname)
+		     (getf row :coursename)))))
+
