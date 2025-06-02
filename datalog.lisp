@@ -13,6 +13,15 @@
 (defun get-facts () *facts*)
 (defun get-rules () *rules*)
 
+(defun clear-dl-db ()
+  (setf *facts* nil)
+  (setf *rules* nil))
+
+(defun show-dl-db ()
+  (format *standard-output* "Current Datalog DB:~%Facts:~A~%Rules:~A"
+	  (get-facts)
+	  (get-rules)))
+
 (defun fact-exists-p (fact)
   (member fact *facts* :test #'equal))
 
@@ -146,31 +155,17 @@
     (apply-rules with-negation)))
 
 (defun query (goal)
+  (forward-chain)
   (let* ((results '())
 	 (negated-goal-p (negated-literal-p goal))
 	 (positive-goal (if negated-goal-p (cdr goal) goal)))
     (iterate-facts-with-fact
       (let ((bindings (unify positive-goal fact '())))
         (when (and bindings (not (eq bindings +unify-fail+)))
-	  (push bindings results))))
+	  (dolist (binding bindings)
+	    (push binding results)))))
     results))
 
-#|
+(defmacro ?- (goal)
+  `(query ',goal))
 
-(defun setup-example-db ()
-  (<- (parent john mary))
-  (<- (parent mary alice))
-  (<- (ancestor ?x ?y) (parent ?x ?y))
-  (<- (ancestor ?x ?y) (parent ?x ?z) (ancestor ?z ?y))
-  (<- (not-grandparent ?x ?y) (parent ?z ?y) (not (parent ?x ?z))))
-
-(defun run-example ()
-  "Run an example scenario."
-  (setup-example-db)
-  (forward-chain)
-  (let ((result (query '(not-grandparent john ?who))))
-    (format t "Solutions: ~A~%" result)))
-
-(run-example)
-
-|#
