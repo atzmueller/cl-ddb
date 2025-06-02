@@ -6,9 +6,12 @@
 (unless (find-package "CL-DDB")
   (defpackage #:cl-ddb
     (:use #:cl #:dbi)
-    (:nicknames #:ddb)
     (:export
+     #:?-
+     #:clear-dl-db
+     #:forward-chain
      #:query
+     #:show-dl-db
      #:<-
      #:def-schema
      #:def-ra-operator
