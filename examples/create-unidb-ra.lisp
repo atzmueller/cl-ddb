@@ -89,7 +89,9 @@
    (26120 "Fichte" 10)
    (26830 "Aristoxenos" 8)
    (27550 "Schopenhauer" 6)
-   (28106 "Carnap" 3)))
+   (28106 "Carnap" 3)
+   (29120 "Theophrastos" 2)
+   (29555 "Feuerbach" 2)))
 
 ;; tests
 
