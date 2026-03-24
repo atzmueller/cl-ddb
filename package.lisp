@@ -13,9 +13,9 @@
      #:query
      #:show-dl-db
      #:<-
-     #:def-schema
-     #:def-ra-operator
-     #:def-relation
+     #:defschema
+     #:defoperator
+     #:defrelation
      #:do-sql*
      #:attributes #:types #:name #:schema #:rows
      #:as

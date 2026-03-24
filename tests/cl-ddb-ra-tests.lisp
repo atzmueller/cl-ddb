@@ -6,36 +6,36 @@
 (def-suite* cl-ddb-test-ra :in cl-ddb-test-system)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (def-schema s1 (a1 a2 a3))
-  (def-schema s2 (b1 b2 b3))
+  (defschema s1 (a1 a2 a3))
+  (defschema s2 (b1 b2 b3))
   
-  (def-schema s3 ("a1" "a2" "a3"))
+  (defschema s3 ("a1" "a2" "a3"))
   
-  (def-relation r1 s1
+  (defrelation r1 s1
     ((1 2 3)
      (4 5 6)
      (7 8 9)))
   
-  (def-relation r0 s1
+  (defrelation r0 s1
     ((1 2 3)
      (4 8 6)
      (11 12 13)))
   
-  (def-relation r2 s2
+  (defrelation r2 s2
     ((11 22 33)
      (44 55 66)
      (77 88 99)))
 
-  (def-schema s4 (c1 c2))
+  (defschema s4 (c1 c2))
 
-  (def-relation r4 s4
+  (defrelation r4 s4
     ((1 "b")
      (2 "d")
      (3 "f")))
 
-  (def-schema foo (a b))
+  (defschema foo (a b))
 
-  (def-relation foobar foo
+  (defrelation foobar foo
     ((1 t)
      (2 nil))))
 

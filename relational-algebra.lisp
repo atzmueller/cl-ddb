@@ -43,13 +43,13 @@
       (defparameter ,name ,expression))
      ,name))
 
-(defmacro def-schema (name attributes &optional types)
+(defmacro defschema (name attributes &optional types)
   `(progn
      (assert (symbolp ',name) nil "~A is not a symbol" ',name)
      (assert (listp ',attributes) nil "~A is not a list of attributes" ',attributes)
      (as ,name (make-instance 'schema :attributes ',attributes :types ',types))))
 
-(defmacro def-relation (name schema rows)
+(defmacro defrelation (name schema rows)
   `(progn
      (assert (symbolp ',name) nil "~A is not a symbol" ',name)
      (assert (eql (type-of ,schema) 'schema) nil "~A is not a schema" ,schema)
@@ -143,7 +143,7 @@
   `(do-rename ',new ',old ,relation))
 
 (defmacro rename-relation (new old)
-  `(def-relation ,new ,(schema (symbol-value old)) ,(rows (symbol-value old))))
+  `(defrelation ,new ,(schema (symbol-value old)) ,(rows (symbol-value old))))
 
 (#+:sbcl sb-ext:without-package-locks #-:sbcl progn
  (defmacro rename (new old &optional relation)
@@ -204,7 +204,7 @@
   (rel-diff r1 r2))
 
 
-(defmacro def-ra-operator (name (rvar1 &optional rvar2) &body body)
+(defmacro defoperator (name (rvar1 &optional rvar2) &body body)
   `(defmacro ,name (rel1 &optional rel2)
      (declare (ignorable rel2))
      ,(if rvar2

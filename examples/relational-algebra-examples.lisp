@@ -6,34 +6,34 @@
 #| Examples - simple schema |#
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (def-schema s1 (a1 a2 a3))
-  (def-schema s2 (b1 b2 b3))
+  (defschema s1 (a1 a2 a3))
+  (defschema s2 (b1 b2 b3))
 
-  (def-schema s3 ("a1" "a2" "a3"))
+  (defschema s3 ("a1" "a2" "a3"))
 
-  (def-relation r1 s1
+  (defrelation r1 s1
     ((1 2 3)
      (4 5 6)
      (7 8 9)))
 
-  (def-relation r0 s1
+  (defrelation r0 s1
     ((1 2 3)
      (4 8 6)
      (11 12 13)))
 
-  (def-relation r2 s2
+  (defrelation r2 s2
     ((11 22 33)
      (44 55 66)
      (77 88 99)))
 
-  (def-relation r3 s1
+  (defrelation r3 s1
     ((11 22 33)
      (44 55 66)
      (77 88 99)))
 
-  (def-schema s4 (c1 c2))
+  (defschema s4 (c1 c2))
   
-  (def-relation r4 s4
+  (defrelation r4 s4
     ((1 "b")
      (2 "d")
      (3 "f")))
@@ -94,10 +94,10 @@
 ;;; Uni-DB example
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (def-schema schema-prof (perno name rank room))
-  (def-schema schema-course (couno title sch taughtby))
+  (defschema schema-prof (perno name rank room))
+  (defschema schema-course (couno title sch taughtby))
 
-  (def-relation professor schema-prof
+  (defrelation professor schema-prof
     ((2125 "Sokrates" "W3" 226)
      (2126 "Russel" "W3" 232)
      (2127 "Kopernikus" "W2" 310)
@@ -106,7 +106,7 @@
      (2147 "Curie" "W3" 36)
      (2137 "Kant" "W3" 7)))
   
-  (def-relation course schema-course
+  (defrelation course schema-course
     ((5001 "Fundamental Principles" 4 2137)
      (5041 "Ethics" 4 2125)
      (5043 "Epistemology" 3 2126)
@@ -118,9 +118,9 @@
      (5022 "Faith and Knowledge" 2 2134)
      (4630 "The Three Critiques" 4 2137)))
 
-  (def-schema schema-attends (stuno couno))
+  (defschema schema-attends (stuno couno))
 
-  (def-relation attends schema-attends
+  (defrelation attends schema-attends
     ((26120 5001)
      (27550 5001)
      (27550 4052)
@@ -136,9 +136,9 @@
      (29555 5001)))
 
 
-  (def-schema require-schema (predecessor successor))
+  (defschema requires-schema (predecessor successor))
 
-  (def-relation requires require-schema
+  (defrelation requires requires-schema
     ((5001 5041)
      (5001 5043)
      (5001 5049)
