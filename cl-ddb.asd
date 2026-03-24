@@ -4,7 +4,7 @@
 ;;;; cl-ddb.asd
 
 (asdf:defsystem #:cl-ddb
-  :description "Describe cl-ddb here"
+  :description "CL-DDB: Declarative DataBase DSLs"
   :author "Martin Atzmueller <martin@atzmueller.net>"
   :license  "MIT"
   :version "0.1"
