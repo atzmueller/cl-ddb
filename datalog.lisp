@@ -5,13 +5,13 @@
 
 (in-package :cl-ddb)
 
-(declaim (optimize (debug 3)))
+;;; (declaim (optimize (debug 3)))
 
-(defparameter *facts* '())
-(defparameter *rules* '())
+(defvar *facts* '())
+(defvar *rules* '())
 
-(defun get-facts () *facts*)
-(defun get-rules () *rules*)
+(defun all-facts () *facts*)
+(defun all-rules () *rules*)
 
 (defun clear-dl-db ()
   (setf *facts* nil)
@@ -19,8 +19,8 @@
 
 (defun show-dl-db ()
   (format *standard-output* "Current Datalog DB:~%Facts:~A~%Rules:~A"
-	  (get-facts)
-	  (get-rules)))
+          (all-facts)
+          (all-rules)))
 
 (defun fact-exists-p (fact)
   (member fact *facts* :test #'equal))
@@ -53,13 +53,13 @@
      ,@body))
 
 (defmacro iterate-facts-with-fact (&body body)
-  `(dolist (fact (get-facts))
+  `(dolist (fact (all-facts))
      ,@body))
 
 (defun variable-p (x)
   (and (symbolp x) (char= (char (symbol-name x) 0) #\?)))
 
-(defparameter +unify-fail+ :fail)
+(defconstant +unify-fail+ :fail)
 
 (defun unify-variable (var value bindings)
   (let ((binding (assoc var bindings)))
@@ -117,15 +117,15 @@
 
 (defun apply-rule (rule)
   (let* ((head (car rule))
-         (body (cdr rule))	 
-	 (bindings (resolve-body body '()))
-	 (new-fact-added nil))
+         (body (cdr rule))       
+         (bindings (resolve-body body '()))
+         (new-fact-added nil))
     (when bindings
       (dolist (binding bindings)
-	(let ((grounded-head (apply-substitutions head binding)))
+        (let ((grounded-head (apply-substitutions head binding)))
           (unless (fact-exists-p grounded-head)
             (add-fact grounded-head)
-	    (setf new-fact-added t)))))
+            (setf new-fact-added t)))))
     new-fact-added))
 
 (defun apply-rules (rules)
@@ -134,8 +134,8 @@
       :while new-fact-added
       :do (setf new-fact-added nil)
           (iterate-with-rule rules
-	    (when (apply-rule rule)
-	      (setf new-fact-added t))))))
+            (when (apply-rule rule)
+              (setf new-fact-added t))))))
 
 (defun rule-has-negation-p (rule)
   (some (lambda (literal) (and (consp literal) (eq (car literal) 'not))) (cdr rule)))
@@ -143,7 +143,7 @@
 (defun stratify-rules ()
   (let ((without-negation '())
         (with-negation '()))
-    (iterate-with-rule (get-rules)
+    (iterate-with-rule (all-rules)
       (if (rule-has-negation-p rule)
           (push rule with-negation)
           (push rule without-negation)))
@@ -157,13 +157,13 @@
 (defun query (goal)
   (forward-chain)
   (let* ((results '())
-	 (negated-goal-p (negated-literal-p goal))
-	 (positive-goal (if negated-goal-p (cdr goal) goal)))
+         (negated-goal-p (negated-literal-p goal))
+         (positive-goal (if negated-goal-p (cdr goal) goal)))
     (iterate-facts-with-fact
       (let ((bindings (unify positive-goal fact '())))
         (when (and bindings (not (eq bindings +unify-fail+)))
-	  (dolist (binding bindings)
-	    (push binding results)))))
+          (dolist (binding bindings)
+            (push binding results)))))
     results))
 
 (defmacro ?- (goal)

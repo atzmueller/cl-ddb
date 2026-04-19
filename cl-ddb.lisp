@@ -6,10 +6,10 @@
 (in-package #:cl-ddb)
 
 ;;;(eval-when (:compile-toplevel :load-toplevel :execute)
-;;;  (import 'ddb:<- (find-package :cl-user)))
+;;;  (import 'cld:<- (find-package :cl-user)))
 
 (defpackage #:cl-ddb-user
   (:use #:cl #:cl-ddb #:dbi)
-  (:nicknames #:ddb-user))
+  (:nicknames #:cld-user))
   
   
