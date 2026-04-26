@@ -37,7 +37,7 @@
 (defvar *pred-index*   (make-hash-table :test #'eq)
   "Predicate index: predicate-symbol -> list of known facts (EDB \union IDB).")
 (defvar *all-fact-set*     (make-hash-table :test #'equal)
-  "Hash set for O(1) duplicate detection: fact -> T.")
+  "Hash set for O(1) duplicate detection: fact -> +base-fact+ or +derived-fact+.")
 
 (declaim (type list *facts* *derived* *rules*)
          (type (or cons null) *derived-tail*)
@@ -46,6 +46,9 @@
 
 (defconstant +unify-fail+ :fail
   "Constant returned by UNIFY and UNIFY-WITH-GROUND on failure.")
+
+(defconstant +derived-fact+ :derived-fact)
+(defconstant +base-fact+ :base-fact)
 
 ;;; index maintenance, for efficiency (in semi-naive evaluation below)
 
@@ -56,7 +59,7 @@
   (push fact (gethash (literal-predicate fact) pred-index '())))
 
 (defun facts-for (pred)
-
+  "Get facts for predicate <pred> (hashed)"
   (declare (type symbol pred))
   (the list (gethash pred *pred-index* '())))
 
@@ -66,7 +69,7 @@
   (clrhash *all-fact-set*)
   (dolist (fact *facts*)
     (index-add fact *pred-index*)
-    (setf (gethash fact *all-fact-set*) t)))
+    (setf (gethash fact *all-fact-set*) +base-fact+)))
 
 (defun snapshot-index ()
   "Shallow-copy *pred-index* into a new hash table for use as a delta."
@@ -89,7 +92,9 @@
 (defun all-rules () *rules*)
 
 (defun clear-dl-db ()
-  (clear-derived)
+  (when *derived-tail*
+    (setf (cdr *derived-tail*) nil))
+  (setf *derived* nil *derived-tail* nil)
   (clrhash *pred-index*)
   (clrhash *all-fact-set*)
   (setf *facts* nil)
@@ -106,9 +111,13 @@
   (rebuild-edb-indexes))
 
 (defun show-dl-db ()
-  (format *standard-output*
-          "Current Datalog DB:~%Base facts:    ~S~%Derived facts: ~S~%Rules:         ~S~%"
-          *facts* *derived* *rules*))
+  (let ((derived-only
+          (loop :for cell :on *derived*
+                :until (eq cell *facts*)
+                :collect (car cell))))
+    (format *standard-output*
+            "Current Datalog DB:~%Base facts:    ~S~%Derived facts: ~S~%Rules:         ~S~%"
+            *facts* derived-only *rules*)))
 
 (defun variable-p (x)
   "Return T if X is a Datalog variable (a symbol whose name begins with '?')."
@@ -130,15 +139,17 @@
 (defun add-fact (fact)
   "Assert FACT as a base fact. When a derived chain exists, the tail link is patched to keep the
    invariant: (cdr *derived-tail*) = *facts*."
-  (unless (gethash fact *all-fact-set*)
-    ;; N.B. *all-fact-set* can also be modified during forward-chain (=> add-derived-fact)
-    (let ((new-cons (cons fact *facts*)))
-      (setf *facts* new-cons)
-      (when *derived-tail*
-        (setf (cdr *derived-tail*) new-cons)))
-    (setf (gethash fact *all-fact-set*) t)
-    (index-add fact *pred-index*)
-    (setf *db-dirty* t)))
+  (let ((current (gethash fact *all-fact-set*)))
+    (unless (eq current +base-fact+)
+      (let ((new-cons (cons fact *facts*)))
+        (setf *facts* new-cons)
+        (when *derived-tail*
+          (setf (cdr *derived-tail*) new-cons)))
+      (setf (gethash fact *all-fact-set*) +base-fact+)
+      ;; Fact is already in *pred-index* if it was previously derived.
+      (unless (eq current +derived-fact+)
+        (index-add fact *pred-index*))
+      (setf *db-dirty* t))))
 
 (defun ground-p (term)
   (cond ((variable-p term) nil)
@@ -158,7 +169,7 @@
       (when (null *derived*)
         (setf *derived-tail* new-cons))
       (setf *derived* new-cons))
-    (setf (gethash fact *all-fact-set*) t)
+    (setf (gethash fact *all-fact-set*) +derived-fact+)
     (index-add fact *pred-index*)
     t))
 
@@ -175,8 +186,7 @@
 
 (defun check-rule-safety (head body)
   "Signal an error if any variable in HEAD or in a negated body literal does
-   not appear in at least one positive body literal (Datalog safety condition).
-   Fix 5: prevents non-ground facts being silently inserted into the database."
+   not appear in at least one positive body literal (Datalog safety condition)."
   (declare (type list body))
   (let* ((positive-body (remove-if #'negated-literal-p body))
          (safe-vars (reduce (lambda (acc lit)
