@@ -4,7 +4,7 @@
 (in-package #:cl-dbd-tests)
 
 (def-suite cl-dbd-suite
-  :description "Tests targeting each bug identified in the cl-dbd Datalog engine.")
+  :description "Tests for the cl-dbd Datalog engine.")
 
 (in-suite cl-dbd-suite)
 
@@ -17,11 +17,8 @@
   `(progn (cl-dbd::clear-dl-db) ,@body))
 
 
-;;; ─────────────────────────────────────────────────────────────────────────
-;;; Bug #1 – Empty bindings '() are falsy and treated as failure
-;;; ─────────────────────────────────────────────────────────────────────────
 
-(test bug-1/ground-query-succeeds-against-ground-fact
+(test ground-query-succeeds-against-ground-fact
   "A ground query matching an identical ground fact must return non-nil.
    Unifying equal ground terms yields '(); (and '() ...) short-circuits
    because '() is falsy in CL, so no result is ever collected."
@@ -31,7 +28,7 @@
       (is (not (null result))
           "Ground query (parent alice bob) should succeed; got NIL"))))
 
-(test bug-1/resolve-body-returns-singleton-list-for-ground-match
+(test resolve-body-returns-singleton-list-for-ground-match
   "resolve-body must return '(()) -- a list holding one empty binding set --
    when a ground body literal unifies with a ground fact.
    The falsy-bindings bug causes it to return NIL instead."
@@ -42,7 +39,7 @@
           "resolve-body returned ~S; expected '(()) for a ground match"
           result))))
 
-(test bug-1/propositional-rule-derives-its-head
+(test propositional-rule-derives-its-head
   "The rule (b) :- (a) must add (b) to the database when (a) is a fact.
    The literal (a) unifies with fact (a) yielding '(); the falsy check
    skips the result so the head is never asserted."
@@ -54,11 +51,8 @@
         "(b) should be derived by (b :- a) but is absent")))
 
 
-;;; ─────────────────────────────────────────────────────────────────────────
-;;; Bug #2 – Query results are not grouped per solution
-;;; ─────────────────────────────────────────────────────────────────────────
 
-(test bug-2/each-solution-is-a-complete-binding-alist
+(test each-solution-is-a-complete-binding-alist
   "Two matching facts against a two-variable query should yield a list of
    two alists, each containing bindings for both variables.
    (dolist (binding bindings) (push binding results)) instead flattens all
@@ -78,7 +72,7 @@
                  results)
           "Every solution must bind both ?x and ?y. Got: ~S" results))))
 
-(test bug-2/solutions-from-distinct-facts-are-separable
+(test solutions-from-distinct-facts-are-separable
   "With two facts matching a two-variable query, it must be possible to
    pair each ?k with its corresponding ?v.  The flattened result makes
    cross-solution pairing impossible."
@@ -99,7 +93,7 @@
 ;;; Bug #3 – Positive goal extracted from negated query using cdr, not cadr
 ;;; ─────────────────────────────────────────────────────────────────────────
 
-(test bug-3/cdr-vs-cadr-on-negated-goal
+(test cdr-vs-cadr-on-negated-goal
   "For (not (p a b)), (cdr goal) = ((p a b)) -- an extra wrapping list --
    while (cadr goal) = (p a b), the literal itself.  This test documents
    the structural difference that the bug exploits."
@@ -109,7 +103,7 @@
     (is (equal (cdr goal)  '((parent alice carol)))
         "cdr wraps the literal in an extra list -- what the buggy code uses")))
 
-(test bug-3/negated-query-succeeds-when-fact-is-absent
+(test negated-query-succeeds-when-fact-is-absent
   "(?- (not (parent alice carol))) must return non-nil because that fact
    is absent.  The cdr/cadr bug causes unification to attempt matching
    ((parent alice carol)) against each fact, which always fails, so the
@@ -121,11 +115,8 @@
           "Negated query for an absent fact should succeed; got NIL"))))
 
 
-;;; ─────────────────────────────────────────────────────────────────────────
-;;; Bug #4 – apply-substitutions does not follow transitive variable chains
-;;; ─────────────────────────────────────────────────────────────────────────
 
-(test bug-4/transitive-chain-resolves-to-ground-value
+(test transitive-chain-resolves-to-ground-value
   "With bindings ((?x . ?y) (?y . alice)), applying to ?x must yield alice.
    The single-step lookup returns ?y."
   (let* ((bindings '((?x . ?y) (?y . alice)))
@@ -133,7 +124,7 @@
     (is (equal result 'alice)
         "Expected alice via ?x->?y->alice; got ~S" result)))
 
-(test bug-4/variable-bound-to-nil-returns-nil
+(test variable-bound-to-nil-returns-nil
   "If ?x is bound to NIL the result must be NIL.
    (or (cdr (assoc ?x bindings)) ?x) evaluates to (or nil ?x) = ?x -- wrong."
   (let* ((bindings '((?x . nil)))
@@ -142,7 +133,7 @@
         "?x bound to NIL should yield NIL, not the symbol ?x; got ~S"
         result)))
 
-(test bug-4/chained-variable-inside-compound-term
+(test chained-variable-inside-compound-term
   "Transitive resolution must propagate inside compound terms.
    (parent ?x bob) with ((?x . ?y) (?y . alice)) must become
    (parent alice bob), not (parent ?y bob)."
@@ -152,11 +143,8 @@
         "Expected (parent alice bob); got ~S" result)))
 
 
-;;; ─────────────────────────────────────────────────────────────────────────
-;;; Bug #5 – NAF with unbound variables uses literal equality, not unification
-;;; ─────────────────────────────────────────────────────────────────────────
 
-(test bug-5/naf-incorrectly-succeeds-when-matching-ground-fact-exists
+(test naf-incorrectly-succeeds-when-matching-ground-fact-exists
   "resolve-body on (not (parent ?x alice)) with empty bindings must return
    NIL when (parent bob alice) is in the database -- some X satisfies
    (parent X alice).  fact-exists-p uses #'equal; the symbol ?x never equals
@@ -168,7 +156,7 @@
           "NAF with free ?x should fail when (parent bob alice) exists; got ~S"
           result))))
 
-(test bug-5/naf-correctly-fails-when-variable-is-pre-bound
+(test naf-correctly-fails-when-variable-is-pre-bound
   "Contrast: when ?x is already bound to bob in the incoming bindings,
    apply-substitutions grounds the literal to (parent bob alice) before
    the NAF check.  fact-exists-p then correctly detects the fact.
@@ -181,11 +169,7 @@
           "NAF (not (parent bob alice)) with ?x=bob pre-bound should fail"))))
 
 
-;;; ─────────────────────────────────────────────────────────────────────────
-;;; Bug #6 – Unhygienic variable capture in the two iteration macros
-;;; ─────────────────────────────────────────────────────────────────────────
-
-(test bug-6/iterate-with-rule-shadows-outer-rule-binding
+(test iterate-with-rule-shadows-outer-rule-binding
   "iterate-with-rule hardcodes 'rule' as its dolist loop variable.  A
    binding of 'rule' in the enclosing lexical scope is silently shadowed
    inside the body.  Contrast with a plain dolist that uses a different
@@ -210,7 +194,7 @@
             "With iterate-with-rule, outer 'rule' = :sentinel is shadowed ~
              and unreachable")))))
 
-(test bug-6/iterate-facts-with-fact-shadows-outer-fact-binding
+(test iterate-facts-with-fact-shadows-outer-fact-binding
   "iterate-facts-with-fact hardcodes 'fact' as its dolist loop variable.
    A binding of 'fact' in the enclosing scope is silently shadowed.
    Contrast with a plain dolist where the outer binding stays accessible."
@@ -235,11 +219,7 @@
              and unreachable")))))
 
 
-;;; ─────────────────────────────────────────────────────────────────────────
-;;; Bug #7 – +unify-fail+ uses defparameter instead of defconstant
-;;; ─────────────────────────────────────────────────────────────────────────
-
-(test bug-7/rebinding-unify-fail-breaks-failure-detection
+(test rebinding-unify-fail-breaks-failure-detection
   "+unify-fail+ is declared defparameter and can be mutated at runtime.
    After mutation, unify still returns the original :fail keyword while
    +unify-fail+ holds a new value; all eq-based failure guards throughout
@@ -257,13 +237,3 @@
                 fail-result cl-dbd::+unify-fail+)))
       (setf cl-dbd::+unify-fail+ original))))
 
-
-;;; ─────────────────────────────────────────────────────────────────────────
-;;; Bug #8 – Dead (null x)(null y) clause in unify
-;;; ─────────────────────────────────────────────────────────────────────────
-
-(test bug-8/unify-nil-nil-handled-by-equal-clause
-  "(equal nil nil) is T, so the first cond clause fires for two NILs; the
-   subsequent (and (null x)(null y)) clause is unreachable dead code.
-   Unification remains correct; this test documents the redundancy."
-)
