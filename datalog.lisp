@@ -7,6 +7,8 @@
 
 ;;; (declaim (optimize (debug 3)))
 
+(declaim (optimize (speed 1) (safety 1)))
+
 ;; data structure setup
 ;; core idea: use split-pointer for all-facts, so that instead of two
 ;; independent lists that are append-ed on every call, maintain a single
@@ -45,7 +47,7 @@
          (type hash-table *pred-index* *all-fact-set*))
 
 (defconstant +unify-fail+ :fail
-  "Constant returned by UNIFY and UNIFY-WITH-GROUND on failure.")
+  "Constant returned by UNIFY-WITH-GROUND on failure.")
 
 (defconstant +derived-fact+ :derived-fact)
 (defconstant +base-fact+ :base-fact)
@@ -89,9 +91,12 @@
    *derived* is already physically linked to *facts* at its tail."
   (or *derived* *facts*))
 
-(defun all-rules () *rules*)
+(defun all-rules ()
+  "Return all currently stored rules."
+  *rules*)
 
 (defun clear-dl-db ()
+  "Clear the entire database: EDB, IDB, rules, and all indexes."
   (when *derived-tail*
     (setf (cdr *derived-tail*) nil))
   (setf *derived* nil *derived-tail* nil)
@@ -111,6 +116,7 @@
   (rebuild-edb-indexes))
 
 (defun show-dl-db ()
+  "Print the current EDB, IDB, and rule set to *standard-output*."
   (let ((derived-only
           (loop :for cell :on *derived*
                 :until (eq cell *facts*)
@@ -122,7 +128,7 @@
 (defun variable-p (x)
   "Return T if X is a Datalog variable (a symbol whose name begins with '?')."
   (and (symbolp x)
-       (let ((name (symbol-name (the symbol x))))
+       (let ((name (symbol-name x)))
          (declare (type simple-string name))
          (and (plusp (the fixnum (length name)))
               (char= (char name 0) #\?)))))
@@ -238,33 +244,9 @@
   (declare (type list bindings))
   (if (variable-p x)
       (let ((b (assoc x bindings :test #'eq)))
+        (declare (type (or null cons) b))
         (if b (walk (cdr b) bindings) x))
       x))
-
-(defun occurs-p (var term bindings)
-  "Return T if VAR occurs anywhere inside TERM under BINDINGS."
-  (declare (type list bindings))
-  (let ((walked (walk term bindings)))
-    (cond ((equal var walked) t)
-          ((consp walked)
-           (or (occurs-p var (car walked) bindings)
-               (occurs-p var (cdr walked) bindings)))
-          (t nil))))
-
-(defun unify (x y bindings)
-  "Unify X and Y under BINDINGS.  Returns extended bindings or +UNIFY-FAIL+."
-  (let ((x (walk x bindings))
-        (y (walk y bindings)))
-    (cond
-      ((equal x y) bindings)
-      ((variable-p x)
-       (if (occurs-p x y bindings) +unify-fail+ (cons (cons x y) bindings)))
-      ((variable-p y)
-       (if (occurs-p y x bindings) +unify-fail+ (cons (cons y x) bindings)))
-      ((and (consp x) (consp y))
-       (let ((b (unify (car x) (car y) bindings)))
-         (if (eq b +unify-fail+) +unify-fail+ (unify (cdr x) (cdr y) b))))
-      (t +unify-fail+))))
 
 (defun unify-with-ground (x ground bindings)
   "Unify X (may contain variables) with GROUND (guaranteed variable-free).
@@ -296,8 +278,12 @@
 
 (defun rule-head-predicate (rule)
   "Return the predicate symbol of a rule's head."
+  (declare (type list rule))
   (let ((head (first rule)))
     (the symbol (if (consp head) (car head) head))))
+
+
+(deftype stratum () '(and fixnum unsigned-byte))
 
 (defun compute-strata (rules)
   "Assign a stratum number to every predicate in RULES using iterative
@@ -325,9 +311,9 @@
                     (declare (type symbol head-pred))
                     (dolist (lit (rest rule))
                       (let* ((dep-pred (literal-predicate lit))
-                             (dep-s (gethash dep-pred strata 0))
-                             (req (if (negated-literal-p lit) (1+ dep-s) dep-s))
-                             (cur (gethash head-pred strata 0)))
+                             (dep-s (the stratum (gethash dep-pred strata 0)))
+                             (req (the stratum (if (negated-literal-p lit) (1+ dep-s) dep-s)))
+                             (cur (the stratum (gethash head-pred strata 0))))
                         (declare (type symbol dep-pred))
                         (when (> req cur)
                           (setf (gethash head-pred strata) req)
@@ -347,15 +333,15 @@
            (type hash-table strata))
   (if (zerop (hash-table-count strata))
       #()
-      (let* ((max-s  (the (and fixnum unsigned-byte) ;; stratum
+      (let* ((max-s (the stratum
                           (loop :for v :of-type fixnum
                                     :being :the :hash-values :of strata
                                 :maximize v)))
              (groups (make-array (1+ max-s) :initial-element nil)))
-        (declare (type (and fixnum unsigned-byte) max-s) ;; stratum
+        (declare (type stratum max-s)
                  (type simple-vector groups))
         (dolist (rule rules groups)
-          (let ((s (the (and fixnum unsigned-byte) (gethash (rule-head-predicate rule) strata 0)))) ;; stratum
+          (let ((s (the stratum (gethash (rule-head-predicate rule) strata 0))))
             (push rule (aref groups s)))))))
 
 (defun fact-matches-p (goal)
@@ -373,20 +359,17 @@
            (optimize (speed 3) (safety 1)))
   (if (null body)
       (list bindings)
-      (let* ((goal       (apply-substitutions (car body) bindings))
-             (rest-body  (cdr body))
-             (at-pivot   (zerop pivot))
-             (solutions  '()))
-        (declare (type list    rest-body solutions)
+      (let* ((goal (apply-substitutions (car body) bindings))
+             (rest-body (cdr body))
+             (at-pivot (zerop pivot))
+             (solutions '()))
+        (declare (type list rest-body solutions)
                  (type boolean at-pivot))
         (if (negated-literal-p goal)
             (unless (fact-matches-p (cadr goal))
               (setq solutions
                     (resolve-semi-naive rest-body bindings (1- pivot) delta-index)))
-            (let* ((pred       (literal-predicate goal))
-                   ;; (the list …) on the delta gethash: delta stores only
-                   ;; lists (pushed via index-add); asserting LIST enables
-                   ;; the same cons-specific dolist path as facts-for.
+            (let* ((pred (literal-predicate goal))
                    (candidates (if at-pivot
                                    (the list (gethash pred delta-index '()))
                                    (facts-for pred))))
@@ -408,15 +391,13 @@
          (body (rest rule)))
     (declare (type list body))
     (flet ((emit (binding)
+             (declare (type list binding))
              (let ((grounded (apply-substitutions head binding)))
                (when (add-derived-fact grounded)
                  (index-add grounded next-delta-index)))))
       (if (every #'negated-literal-p body)
           (dolist (binding (resolve-semi-naive body '() -1 delta-index))
             (emit binding))
-          ;; :of-type fixnum on pivot: unboxed counter for the variant loop.
-          ;; (the fixnum (length body)): avoids a generic length call;
-          ;; body is declared list so the compiler knows length returns fixnum.
           (loop :for pivot :of-type fixnum :from 0
                 :for pivot-lit :in body
                 :unless (negated-literal-p pivot-lit)
@@ -426,7 +407,7 @@
 
 (defun apply-rules-semi-naive (rules initial-delta)
   "Drive RULES to fixpoint starting from INITIAL-DELTA."
-  (declare (type list      rules)
+  (declare (type list rules)
            (type hash-table initial-delta))
   (let ((delta initial-delta))
     (declare (type hash-table delta))
