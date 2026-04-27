@@ -1,10 +1,10 @@
 ;;; Semantic Information Systems Group, Osnabrück University
 ;;; (C) 2024-2025 Martin Atzmueller
 
-;;;; cl-ddb.asd
+;;;; cl-dbd.asd
 
-(asdf:defsystem #:cl-ddb
-  :description "CL-DDB: Declarative DataBase DSLs"
+(asdf:defsystem #:cl-dbd
+  :description "CL-DBD: DataBase-oriented Declarative DSLs"
   :author "Martin Atzmueller <martin@atzmueller.net>"
   :license  "MIT"
   :version "0.1"
@@ -14,23 +14,23 @@
 	       (:file "datalog")
 	       (:file "relational-algebra")
 	       (:file "sql-dbi-extensions")
-               (:file "cl-ddb"))
-  :in-order-to ((test-op (test-op "cl-ddb/tests"))))
+               (:file "cl-dbd"))
+  :in-order-to ((test-op (test-op "cl-dbd/tests"))))
 
-;;; test system with: (asdf:test-system :cl-ddb)
+;;; test system with: (asdf:test-system :cl-dbd)
 
-(asdf:defsystem #:cl-ddb/tests
-  :description "cl-ddb-test-system"
+(asdf:defsystem #:cl-dbd/tests
+  :description "cl-dbd-test-system"
   :author "Martin Atzmueller <martin@atzmueller.net>"
   :license  "MIT"
   :serial t
-  :depends-on ("uiop" "cl-ddb")
+  :depends-on ("uiop" "cl-dbd")
   :components ((:file "tests/package")
-	       (:file "tests/cl-ddb-test-system")
-	       (:file "tests/cl-ddb-ra-tests")
-	       (:file "tests/cl-ddb-sql-tests"))
+	       (:file "tests/cl-dbd-test-system")
+	       (:file "tests/cl-dbd-ra-tests")
+	       (:file "tests/cl-dbd-sql-tests"))
   :perform (asdf:test-op (o s)
 			 (uiop:symbol-call
 			  :fiveam
 			  :run!
-			  (find-symbol "CL-DDB-TEST-SYSTEM" (find-package '#:cl-ddb-test)))))
+			  (find-symbol "CL-DBD-TEST-SYSTEM" (find-package '#:cl-dbd-test)))))

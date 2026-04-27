@@ -1,7 +1,7 @@
 ;;; Semantic Information Systems Group, Osnabrück University
 ;;; (C) 2024-2025 Martin Atzmueller
 
-(in-package :cl-ddb)
+(in-package :cl-dbd)
 
 #+:sbcl (declaim (optimize (debug 3) (safety 3)))
 

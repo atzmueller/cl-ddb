@@ -3,7 +3,7 @@
 
 ;;; datalog.lisp
 
-(in-package :cl-ddb)
+(in-package :cl-dbd)
 
 ;;; (declaim (optimize (debug 3)))
 
@@ -456,7 +456,13 @@
           (push b results))))
     (if negated-p
         (if results nil (list nil))   ; invert for negated queries
-        results)))
+        ;;sort results by variable name
+        (loop :for bindings in results
+              :collect
+              (when bindings
+                (sort bindings
+                      #'(lambda (x y)
+                          (string< (symbol-name (car x)) (symbol-name (car y))))))))))
 
 (defmacro ?- (goal)
   `(query ',goal))

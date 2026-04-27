@@ -1,7 +1,7 @@
 ;;; Semantic Information Systems Group, Osnabrück University
 ;;; (C) 2024-2025 Martin Atzmueller
 
-(in-package :cl-ddb)
+(in-package :cl-dbd)
 
 (defmacro it-if (test then &optional else)
   `(let ((it ,test))

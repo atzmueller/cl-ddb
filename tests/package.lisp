@@ -3,6 +3,6 @@
 
 ;;;; package.lisp / tests
 
-(defpackage #:cl-ddb-test
-  (:use #:5am #:cl #:cl-ddb #:dbi)
-  (:export #:cl-ddb-test-system))
+(defpackage #:cl-dbd-test
+  (:use #:5am #:cl #:cl-dbd #:dbi)
+  (:export #:cl-dbd-test-system))

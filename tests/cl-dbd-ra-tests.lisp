@@ -1,9 +1,9 @@
 ;;; Semantic Information Systems Group, Osnabrück University
 ;;; (C) 2024-2025 Martin Atzmueller
 
-(in-package :cl-ddb-test)
+(in-package :cl-dbd-test)
 
-(def-suite* cl-ddb-test-ra :in cl-ddb-test-system)
+(def-suite* cl-dbd-test-ra :in cl-dbd-test-system)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defschema s1 (a1 a2 a3))

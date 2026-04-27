@@ -1,4 +1,4 @@
-(in-package :cl-ddb-user)
+(in-package :cl-dbd-user)
 
 ;;; Examples
 

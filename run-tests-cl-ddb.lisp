@@ -1,5 +1,6 @@
 (in-package :cl-user)
 
-(load "cl-ddb.asd")
-(ql:quickload :cl-ddb)
-(asdf:test-system :cl-ddb)
+(load "cl-dbd.asd")
+(ql:quickload :cl-dbd)
+(asdf:test-system :cl-dbd)
+

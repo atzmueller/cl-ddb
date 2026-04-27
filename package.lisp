@@ -3,9 +3,10 @@
 
 ;;;; package.lisp
 
-(unless (find-package "CL-DDB")
-  (defpackage #:cl-ddb
+(unless (find-package "CL-DBD")
+  (defpackage #:cl-dbd
     (:use #:cl #:dbi)
+    (:nicknames #:dbd)
     (:export
      #:?-
      #:clear-dl-db
@@ -25,7 +26,7 @@
      )))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (when (find-package "CL-DDB")
+  (when (find-package "CL-DBD")
     (do-external-symbols (sym (find-package "CL-DBI"))
-      (export sym (find-package "CL-DDB")))))
+      (export sym (find-package "CL-DBD")))))
 			      

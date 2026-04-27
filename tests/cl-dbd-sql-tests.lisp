@@ -1,9 +1,9 @@
 ;;; Semantic Information Systems Group, Osnabrück University
 ;;; (C) 2024-2025 Martin Atzmueller
 
-(in-package :cl-ddb-test)
+(in-package :cl-dbd-test)
 
-(def-suite* cl-ddb-test-sql :in cl-ddb-test-system)
+(def-suite* cl-dbd-test-sql :in cl-dbd-test-system)
 
 (test sql-select
   (flet ((setup-uni-db (connection)
@@ -68,12 +68,12 @@
 
 (test with-sql-query-finishes
   (finishes
-    (cl-ddb:with-sql-query (query "select sqlite_version();")
-      (print (cl-ddb:fetch query)))))
+    (cl-dbd:with-sql-query (query "select sqlite_version();")
+      (print (cl-dbd:fetch query)))))
 
 (test with-sql-query-fetch-finishes
   (finishes
-    (cl-ddb:with-sql-query (query "select * from pragma_compile_options();")
+    (cl-dbd:with-sql-query (query "select * from pragma_compile_options();")
       (loop for row = (dbi:fetch query)
             while row
             do (format t "~A~%" row)))))

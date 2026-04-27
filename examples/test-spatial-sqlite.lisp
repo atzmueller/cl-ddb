@@ -28,7 +28,7 @@ ourselves."
   (op :int))
 
 
-(ddb::with-db-connection (conn)
+(dbd::with-db-connection (conn)
   (let* ((query (dbi:prepare conn "CREATE VIRTUAL TABLE demo_index USING rtree(
    id,              -- Integer primary key
    minX, maxX,      -- Minimum and maximum X coordinate
