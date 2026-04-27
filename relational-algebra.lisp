@@ -52,7 +52,7 @@
 (defmacro defrelation (name schema rows)
   `(progn
      (assert (symbolp ',name) nil "~A is not a symbol" ',name)
-     (assert (eql (type-of ,schema) 'schema) nil "~A is not a schema" ,schema)
+     (assert (typep ,schema 'schema) nil "~A is not a schema" ,schema)
      (assert (listp ',rows) nil "~A is not a list of tuples" ',rows)
      (as ,name (make-instance 'relation :name ',name :schema ,schema :rows ',rows))))
 
@@ -62,7 +62,7 @@
 
 (defun string-starts-with-p (string prefix)
   (unless (< (length string) (length prefix))
-    (equal (subseq string (length prefix)) prefix)))
+    (equal (subseq string 0 (length prefix)) prefix)))
 
 (defun get-attribute-value (relation attribute row)
   (let ((position (position attribute (attributes (schema relation)))))
@@ -99,7 +99,9 @@
                                 (when result
                                   (list row))))))
            (make-instance 'relation
-                          :schema (make-instance 'schema :attributes (attributes (schema ,safe-relation)))
+                          :schema (make-instance 'schema
+                                                 :attributes (attributes (schema ,safe-relation))
+                                                 :types (types (schema ,safe-relation)))
                           :rows result-rows))))))
 
 (defmacro s (predicate relation)
@@ -125,7 +127,9 @@
                                                   attribute-positions))
                                       (rows ,safe-relation))))
          (make-instance 'relation
-                        :schema (make-instance 'schema :attributes existing-attributes)
+                        :schema (make-instance 'schema
+                                               :attributes existing-attributes
+                                               :types (types (schema ,safe-relation)))
                         :rows (remove-duplicates projected-rows :test #'equal))))))
                                                      
 (defmacro p (attributes relation)
@@ -170,7 +174,7 @@
   (assert (equalp (attributes (schema r1)) (attributes (schema r2)))
           nil "Schemas of ~A and ~A do not match" r1 r2)
   (make-instance 'relation
-                 :name (format nil "~A x ~A" (name r1) (name r2))
+                 :name (format nil "~A ∪ ~A" (name r1) (name r2))
                  :schema (make-instance 'schema :attributes (attributes (schema r1)))
                  :rows (remove-duplicates (union (rows r1) (rows r2)) :test #'equalp)))
 
@@ -196,7 +200,7 @@
                        (sort-seq-by-order row r2-attributes-order-by-r1))
                    (rows r2))))
     (make-instance 'relation
-                   :name (format nil "~A x ~A" (name r1) (name r2))
+                   :name (format nil "~A - ~A" (name r1) (name r2))
                    :schema (make-instance 'schema :attributes (attributes (schema r1)))
                    :rows (set-difference (rows r1) r2-rows-resorted-by-r1  :test #'equal))))
 
